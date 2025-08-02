@@ -6,11 +6,11 @@ import plotly.express as px
 import numpy as np
 import plotly.graph_objects as go
 # from blend_logic import run_dummy_prediction
-from predictor import EagleBlendPredictor
 
 ##---- fucntions ------
 import pandas as pd
 import streamlit as st
+from predictor import EagleBlendPredictor
 
 # Load fuel data from CSV (create this file if it doesn't exist)
 FUEL_CSV_PATH = "fuel_properties.csv"
@@ -295,53 +295,13 @@ st.markdown("""
 tabs = st.tabs([
     "📊 Dashboard",
     "🎛️ Blend Designer",
-    "📤 Batch Processing",
+    "📤 Nothing For Now",
     "⚙️ Optimization Engine",
     "📚 Fuel Registry",
     "🧠 Model Insights"
 ])
 
 # ---------------------- Dashboard Tab ----------------------
-# with tabs[0]:
-#     st.subheader("Performance Metrics")
-#     col1, col2, col3, col4 = st.columns(4)
-    
-#     with col1:
-#         st.markdown("""
-#             <div class="metric-card">
-#                 <h3 style='color: #1d3b58; margin-top: 0;'>Model Accuracy</h3>
-#                 <p style='font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #2c5282;'>94.7%</p>
-#                 <p style='color: #6c757d; margin-bottom: 0;'>R² Score</p>
-#             </div>
-#         """, unsafe_allow_html=True)
-    
-#     with col2:
-#         st.markdown("""
-#             <div class="metric-card">
-#                 <h3 style='color: #1d3b58; margin-top: 0;'>Predictions Made</h3>
-#                 <p style='font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #2c5282;'>12,847</p>
-#                 <p style='color: #6c757d; margin-bottom: 0;'>Today</p>
-#             </div>
-#         """, unsafe_allow_html=True)
-    
-#     with col3:
-#         st.markdown("""
-#             <div class="metric-card">
-#                 <h3 style='color: #1d3b58; margin-top: 0;'>Optimizations</h3>
-#                 <p style='font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #2c5282;'>156</p>
-#                 <p style='color: #6c757d; margin-bottom: 0;'>This Week</p>
-#             </div>
-#         """, unsafe_allow_html=True)
-    
-#     with col4:
-#         st.markdown("""
-#             <div class="metric-card">
-#                 <h3 style='color: #1d3b58; margin-top: 0;'>Cost Savings</h3>
-#                 <p style='font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #2c5282;'>$2.4M</p>
-#                 <p style='color: #6c757d; margin-bottom: 0;'>Estimated Annual</p>
-#             </div>
-#         """, unsafe_allow_html=True)
-    
 
 with tabs[0]:
     st.subheader("Performance Metrics")
@@ -385,10 +345,8 @@ with tabs[0]:
 
 
 
-
     st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
     
-
 
 
     st.subheader("Current Blend Properties")
@@ -422,14 +380,11 @@ with tabs[1]:
     with col_header[0]:
         st.subheader("🎛️ Blend Designer")
     with col_header[1]:
-        quick_blend = st.checkbox("Quick Blend Mode", value=False,
+        batch_blend = st.checkbox("Batch Blend Mode", value=False,
                                 help="Switch between manual input and predefined fuel selection",
-                                key="quick_blend_mode")  # Added unique key
+                                key="batch_blend_mode")
 
-    # Define fuel properties
-
-
-    # Initialize session state for visualization
+    # Initialize session state
     if 'show_visualization' not in st.session_state:
         st.session_state.show_visualization = False
     if 'blended_value' not in st.session_state:
@@ -437,34 +392,43 @@ with tabs[1]:
     if 'selected_property' not in st.session_state:
         st.session_state.selected_property = "Property1"
 
-    # Property selection for manual mode
-    if quick_blend:
-        st.session_state.selected_property = st.selectbox(
-            "Select Property to Predict in Blend",
-            [f"Property{i+1}" for i in range(10)],
-            key="property_select"
-        )
-    
-    st.markdown("#### Component Weights and Selected Property Values")
-    
-    weights, props = [], []
-    col1, col2 = st.columns(2)
+    # Batch mode file upload
+    if batch_blend:
+        st.subheader("📤 Batch Processing")
+        uploaded_file = st.file_uploader("Upload CSV File", type=["csv"], key="Batch_upload")
+        weights = [0.1, 0.2, 0.25, 0.15, 0.3]  # Default weights for batch mode
+        
+        if not uploaded_file:
+            st.warning("Please upload a CSV file for batch processing")
+            data_input = None
+        else:
+            try:
+                data_input = pd.read_csv(uploaded_file)
+                st.success("File uploaded successfully")
+                st.dataframe(data_input.head())
+            except Exception as e:
+                st.error(f"Error reading file: {str(e)}")
+                data_input = None
+    else:
+        # Regular mode
+        data_input = None
+        weights, props = [], []
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("##### ⚖️ Component Weights")
+            for i in range(5):
+                weight = st.number_input(
+                    f"Weight for Component {i+1}", 
+                    min_value=0.0, 
+                    max_value=1.0, 
+                    value=0.2, 
+                    step=0.01, 
+                    key=f"w_{i}"
+                )
+                weights.append(weight)
 
-    with col1:
-        st.markdown("##### ⚖️ Component Weights")
-        for i in range(5):
-            weight = st.number_input(
-                f"Weight for Component {i+1}", 
-                min_value=0.0, 
-                max_value=1.0, 
-                value=0.2, 
-                step=0.01, 
-                key=f"w_{i}"
-            )
-            weights.append(weight)
-
-    with col2:
-        if not quick_blend:
+        with col2:
             st.markdown("##### Fuel Selection")
             for i in range(5):
                 fuel = st.selectbox(
@@ -473,81 +437,64 @@ with tabs[1]:
                     key=f"fuel_{i}"
                 )
                 props.append(st.session_state.FUEL_PROPERTIES[fuel])
-        else:
-            st.markdown(f"##### {st.session_state.selected_property} Values")
-            for i in range(5):
-                prop = st.number_input(
-                    f"Component {i+1} - {st.session_state.selected_property}", 
-                    min_value=-6.0, 
-                    max_value=6.0, 
-                    value=0.5, 
-                    step=0.01, 
-                    key=f"p_{i}"
-                )
-                props.append({st.session_state.selected_property: prop})
 
-    st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
-    
     if st.button("⚙️ Predict Blended Property", key="predict_btn"):
-        total_weight = sum(weights)
-        if abs(total_weight - 1.0) > 0.01:
-            st.warning("⚠️ The total of weights must be **1.0**.")
-            st.session_state.show_visualization = False
-        else:
-            # Calculate blended value
-            if quick_blend:
-                st.session_state.blended_value = 0.9
+        if batch_blend:
+            if data_input is None:
+                st.error("⚠️ Please upload a valid CSV file first!")
+                st.session_state.show_visualization = False
             else:
-                # For fuel mode, we'll calculate when property is selected in visualization
-                pass
-            st.session_state.show_visualization = True
-            
+                st.session_state.show_visualization = True
+        else:
+            if abs(sum(weights) - 1.0) > 0.01:
+                st.warning("⚠️ The total of weights must be **1.0**.")
+                st.session_state.show_visualization = False
+            else:
+                st.session_state.show_visualization = True
+                
+        if st.session_state.show_visualization:
             # Show calculation details
             st.subheader("Blend Components Data")
-            weights_data = {f"Component{i+1}_fraction":weights[i] for i in range(len(weights))}
-            props_data = {f"Component{i+1}_{j}": props[i][j] for j in props[i].keys() for i in range(len(props))}
-            # Combine weights and properties (weights first)
-            combined = {**weights_data, **props_data}
 
-            # Convert to single-row DataFrame
-            input = pd.DataFrame([combined])
-            # st.write("Weights:", weights_data)
-            if quick_blend and st.session_state.selected_property == "Property1":
-                input = model.predict_BlendProperty1(input)
-                
-            st.write("Properties:", input)
+            if not batch_blend:
+                weights_data = {f"Component{i+1}_fraction": weights[i] for i in range(len(weights))}
+                props_data = {f"Component{i+1}_{j}": props[i][j] for j in props[i].keys() for i in range(len(props))}
+                combined = {**weights_data, **props_data}
+                data_input = pd.DataFrame([combined])
+
+            st.write("Properties:", data_input)
 
     # Show visualization only if prediction was made
     if st.session_state.show_visualization:
-        st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
-        st.subheader("Blend Visualization")
-        
-        components = [f"Component {i+1}" for i in range(5)]
-        
-        # 1. Weight Distribution Pie Chart
-        col1, col2 = st.columns(2)
-        with col1:
-            fig1 = px.pie(
-                names=components,
-                values=weights,
-                title="Weight Distribution",
-                color_discrete_sequence=['#8B4513', '#CFB53B', '#654321'],
-                hole=0.4
-            )
-            fig1.update_layout(
-                margin=dict(t=50, b=10),
-                showlegend=False
-            )
-            fig1.update_traces(
-                textposition='inside',
-                textinfo='percent+label',
-                marker=dict(line=dict(color='#ffffff', width=1))
-            )
-            st.plotly_chart(fig1, use_container_width=True)
-        
-        # 2. Property Comparison Bar Chart
-        with col2:
-            if not quick_blend:
+        if not batch_blend:
+            st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
+            st.subheader("Blend Visualization")
+            
+            components = [f"Component {i+1}" for i in range(5)]
+            
+            # 1. Weight Distribution Pie Chart
+            col1, col2 = st.columns(2)
+            with col1:
+                fig1 = px.pie(
+                    names=components,
+                    values=weights,
+                    title="Weight Distribution",
+                    color_discrete_sequence=['#8B4513', '#CFB53B', '#654321'],
+                    hole=0.4
+                )
+                fig1.update_layout(
+                    margin=dict(t=50, b=10),
+                    showlegend=False
+                )
+                fig1.update_traces(
+                    textposition='inside',
+                    textinfo='percent+label',
+                    marker=dict(line=dict(color='#ffffff', width=1))
+                )
+                st.plotly_chart(fig1, use_container_width=True)
+            
+            # 2. Property Comparison Bar Chart
+            with col2:
                 # Property selection for fuel mode
                 viz_property = st.selectbox(
                     "Select Property to View",
@@ -555,74 +502,76 @@ with tabs[1]:
                     key="viz_property"
                 )
                 bar_values = [p[viz_property] for p in props]
-                blended_value = 1234
-            else:
-                # Use values from quick blend mode
-                bar_values = [p[st.session_state.selected_property] for p in props]
-                blended_value = st.session_state.blended_value
-                viz_property = st.session_state.selected_property
-            
-            fig2 = px.bar(
-                x=components,
-                y=bar_values,
-                title=f"{viz_property} Values",
-                color=bar_values,
-                color_continuous_scale='YlOrBr'
-            )
-            fig2.update_layout(
-                yaxis_title=viz_property,
-                xaxis_title="Component",
-                margin=dict(t=50, b=10),
-                coloraxis_showscale=False
-            )
-            
-            fig2.add_hline(
-                y=blended_value,
-                line_dash="dot",
-                line_color="#ff6600",
-                annotation_text="Blended Value",
-                annotation_position="top right"
-            )
-            st.plotly_chart(fig2, use_container_width=True)
-            
-            # Display the calculated value prominently
-            st.markdown(f"""
-                <div style="
-                    background-color: #FAF3E6;
-                    border-left: 4px solid #8B4513;
-                    border-radius: 4px;
-                    padding: 12px;
-                    margin: 12px 0;
-                ">
-                    <p style="margin: 0; color: #654321; 
-                    font-size: 2.2rem;
-                    font-weight: 800;
-                    color: #000;
-                    text-align:center;">
-                        Calculated <strong>{viz_property}</strong> = 
-                        <strong style="color: #000">{blended_value:.4f}</strong>
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
+                blended_value = 123 #Modify
+
+                fig2 = px.bar(
+                    x=components,
+                    y=bar_values,
+                    title=f"{viz_property} Values",
+                    color=bar_values,
+                    color_continuous_scale='YlOrBr'
+                )
+                fig2.update_layout(
+                    yaxis_title=viz_property,
+                    xaxis_title="Component",
+                    margin=dict(t=50, b=10),
+                    coloraxis_showscale=False
+                )
+                
+                fig2.add_hline(
+                    y=blended_value,
+                    line_dash="dot",
+                    line_color="#ff6600",
+                    annotation_text="Blended Value",
+                    annotation_position="top right"
+                )
+                st.plotly_chart(fig2, use_container_width=True)
+                
+                # Display the calculated value prominently
+                st.markdown(f"""
+                    <div style="
+                        background-color: #FAF3E6;
+                        border-left: 4px solid #8B4513;
+                        border-radius: 4px;
+                        padding: 12px;
+                        margin: 12px 0;
+                    ">
+                        <p style="margin: 0; color: #654321; 
+                        font-size: 2.2rem;
+                        font-weight: 800;
+                        color: #000;
+                        text-align:center;">
+                            Calculated <strong>{viz_property}</strong> = 
+                            <strong style="color: #000">{blended_value:.4f}</strong>
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            # Batch mode visualization placeholder
+            st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
+            st.subheader("Batch Processing Results")
+            st.dataframe(data_input, use_container_width=True)
+            # st.info("Batch processing complete. Add custom visualizations here.")
+
 
 with tabs[2]:
-    st.subheader("📤 Batch Processing")
-    uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
+    st.subheader("📤 Nothing FOr NOw")
+    # uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
 
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
-        st.success("File uploaded successfully")
-        st.dataframe(df.head())
+    # if uploaded_file:
+    #     df = pd.read_csv(uploaded_file)
+    #     st.success("File uploaded successfully")
+    #     st.dataframe(df.head())
 
-        if st.button("⚙️ Run Batch Prediction"):
-            result_df = df.copy()
-            # result_df["Predicted_Property"] = df.apply(
-            #     lambda row: run_dummy_prediction(row.values[:5], row.values[5:10]), axis=1
-            # )
-            st.success("Batch prediction completed")
-            st.dataframe(result_df.head())
-            csv = result_df.to_csv(index=False).encode("utf-8")
-            st.download_button("Download Results", csv, "prediction_results.csv", "text/csv")
+    #     if st.button("⚙️ Run Batch Prediction"):
+    #         result_df = df.copy()
+    #         # result_df["Predicted_Property"] = df.apply(
+    #         #     lambda row: run_dummy_prediction(row.values[:5], row.values[5:10]), axis=1
+    #         # )
+    #         st.success("Batch prediction completed")
+    #         st.dataframe(result_df.head())
+    #         csv = result_df.to_csv(index=False).encode("utf-8")
+    #         st.download_button("Download Results", csv, "prediction_results.csv", "text/csv")
 
 
 
@@ -793,6 +742,12 @@ with tabs[4]:
         # use_container_width=True
     )
     
+
+
+        
+
+
+
 
 
 

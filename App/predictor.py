@@ -41,16 +41,16 @@ from sklearn.metrics import mean_absolute_percentage_error
 
 from sklearn.linear_model import LinearRegression
 
+from inference import TabPFNEnsemblePredictor  # import inference.py
+
 # from sklearn.metrics import mean_absolute_percentage_error
 # from tabpfn_extensions.post_hoc_ensembles.sklearn_interface import AutoTabPFNRegressor
 from itertools import combinations
 from scipy.special import comb
-from tabpfn.model.loading import (
-    load_fitted_tabpfn_model,
-    save_fitted_tabpfn_model,
-)
-
-
+# from tabpfn.model.loading import (
+#     load_fitted_tabpfn_model,
+#     save_fitted_tabpfn_model,
+# )
 
 
 class EagleBlendPredictor:
@@ -74,7 +74,7 @@ class EagleBlendPredictor:
                           "transform": 'poly2_features.joblib'
                       },
                       5: {
-                          "model": 'tabpfn_model_target_5.tabpfn_fit', #tabpfn_model_target_5_cpu.tabpfn_fit,'tabpfn_model_target_5_cpu.tabpfn_fit'
+                          "model": 'tabpfn_model_target_5.joblib', #tabpfn_model_target_5_cpu.tabpfn_fit,'tabpfn_model_target_5_cpu.tabpfn_fit'
                           "transform": 'poly5_features.joblib'
                       },
                       6: {
@@ -82,7 +82,7 @@ class EagleBlendPredictor:
                           "transform": 'poly6_features.joblib'
                       },
                       7: {
-                          "model": 'tabpfn_model_target_7.tabpfn_fit',
+                          "model": 'tabpfn_model_target_7.joblib',
                           # For Property 7, the transformation is the mixture feature generation,
                           # which is not a saved object like PolynomialFeatures.
                           # You would need to apply the generate_mixture_features function.
@@ -110,7 +110,7 @@ class EagleBlendPredictor:
         self.model_2 = joblib.load(os.path.join(self.home, self.saved_files_map[2]["model"]))
         self.poly_2 = joblib.load(os.path.join(self.home, self.saved_files_map[2]["transform"]))
 
-        self.model_5 = load_fitted_tabpfn_model(
+        self.model_5 = joblib.load(
             os.path.join(self.home, self.saved_files_map[5]["model"]), #device="cpu"
         )
         self.poly_5 = joblib.load(os.path.join(self.home, self.saved_files_map[5]["transform"]))
@@ -118,7 +118,7 @@ class EagleBlendPredictor:
         self.model_6 = joblib.load(os.path.join(self.home, self.saved_files_map[6]["model"]))
         self.poly_6 = joblib.load(os.path.join(self.home, self.saved_files_map[6]["transform"]))
 
-        self.model_7 = load_fitted_tabpfn_model(
+        self.model_7 = joblib.load(
             os.path.join(self.home, self.saved_files_map[7]["model"]), #device="cpu"
         )
         # No saved transform for model_7 — use generate_mixture_features later in prediction
@@ -129,6 +129,8 @@ class EagleBlendPredictor:
 
         self.model_10 = joblib.load(os.path.join(self.home, self.saved_files_map[10]["model"]))
         self.poly_10 = joblib.load(os.path.join(self.home, self.saved_files_map[10]["transform"]))
+
+        self.model_3489 = TabPFNEnsemblePredictor(model_dir="Models")
         pass
 
 
@@ -151,88 +153,124 @@ class EagleBlendPredictor:
         A, B = segments[-1]
         return A * x + B
 
-    def predict_BlendProperty1(self, row, full = False):
+    def predict_BlendProperty1(self, data, full = True):
         # Dummy custom transformation and prediction for BlendProperty1
         if full:
-            features = self._transform1(row)
+            features = self._transform1(data)
+            features = self.poly_1.transform(features)
         else:
-            features = self.poly_1.transform(row)
-        return self.model_1.predict(features)
+            features = self.poly_1.transform(data)
+        res_df = self.model_1.predict(features)
+        return pd.DataFrame(res_df, columns=['BlendProperty1'])
 
 
-    def predict_BlendProperty2(self, row, full = False):
+    def predict_BlendProperty2(self, data, full = True):
         if full:
-            pass
-            features = self._transform2(row)
+            features = self._transform2(data)
             features = self.poly_2.transform(features)
         else:
-            features = self.poly_2.transform(row)
-
-        return self.model_2.predict(features)
-
-
-    def predict_BlendProperty3(self, row,full = False):
-        pass
-        # model = self.models["BlendProperty3"]
-        # features = self._transform3(row)
-        return model.predict(features)
+            features = self.poly_2.transform(data)
+        res_df = self.model_2.predict(features)
+        return pd.DataFrame(res_df, columns=['BlendProperty2'])
 
 
+    def predict_BlendProperty3489(self, df):
+        arrray,result_df = self.model_3489.custom_predict(df)
+        ans_df= result_df[['BlendProperty3','BlendProperty4','BlendProperty8','BlendProperty9']].copy() # Explicitly create a copy
 
-    def predict_BlendProperty4(self, row, full = False):
-        pass
-        model = self.models["BlendProperty4"]
-        features = self._transform4(row)
-        return model.predict(features)
+        ans_df.loc[ans_df['BlendProperty8'].abs()<0.2,'BlendProperty8'] = ans_df[ans_df['BlendProperty8'].abs()<0.2]['BlendProperty8'].apply(self.piecewise_model)
+        ans_df.loc[ans_df['BlendProperty9'].abs()<0.1,'BlendProperty9'] = 0 #ans_df[ans_df['BlendProperty8'].abs()<0.2]['BlendProperty8'].apply(self.piecewise_model)
 
+        return ans_df
 
-    def predict_BlendProperty5(self, row, full =False ):
+        # ndf.loc[ndf[pred_col].abs() < threshold_8, pred_col] = ndf[ndf[pred_col].abs() < threshold_8][pred_col].apply(func8)
+
+    def predict_BlendProperty5(self, data, full =True ):
         if full:
-            features = self._transform5(row)
+            features = self._transform5(data)
+            features = self.poly_5.transform(features)
         else:
-            features = self.poly_5.transform(row)
+            features = self.poly_5.transform(data)
+        res_df = self.model_5.predict(features)
+        return pd.DataFrame(res_df, columns=['BlendProperty5'])
 
-        return self.model_5.predict(features)
 
-    def predict_BlendProperty6(self, row, full=False):
+    def predict_BlendProperty6(self, data, full=True):
         if full:
-            features = self._transform6(row)
+            features = self._transform6(data)
+            features = self.poly_6.transform(features)
         else:
-            features = self.poly_6.transform(row)
-        return self.model_6.predict(features)
+            features = self.poly_6.transform(data)
+        res_df = self.model_6.predict(features)
+        return pd.DataFrame(res_df, columns=['BlendProperty6'])
 
 
-
-    def predict_BlendProperty7(self, row, full =True):
+    def predict_BlendProperty7(self, data, full =True)-> pd.DataFrame:
         if full:
-
-            features = self._transform7(row)
+            features = self._transform7(data)
         else:
-            pass
+            raise ValueError("BlendProperty7 prediction requires full data.")
+        res_df = self.model_7.predict(features)
+        return pd.DataFrame(res_df, columns=['BlendProperty7'])
 
-        return self.model_7.predict(features)
 
-
-
-    def predict_BlendProperty8(self, row,full = False):
-        first_predict_Res = 2* random.random() -1 ## first prediction
-        if abs(first_predict_Res) < self.threshold:
-            first_predict_Res = self.piecewise_model(first_predict_Res)
-
-        # features = self._transform8(row)
-        return first_predict_Res
-
-    def predict_BlendProperty9(self, row, full = False):
-        pass
-
-    def predict_BlendProperty10(self, row, full = False):
+    def predict_BlendProperty10(self, data, full = False)-> pd.DataFrame:
         if full:
-            pass
-            features = self._transform10(row)
+            features = self._transform10(data)
+            features = self.poly_10.transform(features)
         else:
-            features = self.poly_10.transform(row)
+            features = self.poly_10.transform(data)
+        res_df = self.model_10.predict(features)
+        return pd.DataFrame(res_df, columns=['BlendProperty10'])
 
-        return self.model_10.predict(features)
+
+    def predict_all(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Generates predictions for all blend properties using the individual prediction methods.
+
+        Args:
+            df: Input DataFrame containing the features.
+
+        Returns:
+            DataFrame with predicted blend properties from 'BlendProperty1' to 'BlendProperty10'.
+        """
+        predictions_list = []
+
+        # Predict individual properties
+        predictions_list.append(self.predict_BlendProperty1(df, full=True))
+        predictions_list.append(self.predict_BlendProperty2(df, full=True))
+
+        # Predict BlendProperty3, 4, 8, and 9 together using predict_BlendProperty3489
+        # Assuming predict_BlendProperty3489 returns a DataFrame with columns for these properties.
+        predictions_3489_df = self.predict_BlendProperty3489(df)
+        predictions_list.append(predictions_3489_df[['BlendProperty3']])
+        predictions_list.append(predictions_3489_df[['BlendProperty4']])
+        predictions_list.append(predictions_3489_df[['BlendProperty8']])
+        predictions_list.append(predictions_3489_df[['BlendProperty9']])
+
+
+        predictions_list.append(self.predict_BlendProperty5(df, full=True))
+        predictions_list.append(self.predict_BlendProperty6(df, full=True))
+        predictions_list.append(self.predict_BlendProperty7(df, full=True))
+
+
+        predictions_list.append(self.predict_BlendProperty10(df, full=True))
+
+
+        # Concatenate the list of single-column DataFrames into a single DataFrame
+        predictions_df = pd.concat(predictions_list, axis=1)
+
+        # Ensure columns are in the desired order
+        ordered_cols = [f'BlendProperty{i}' for i in range(1, 11)]
+        # Reindex to ensure columns are in order, dropping any not generated (though all should be)
+        predictions_df = predictions_df.reindex(columns=ordered_cols)
+
+
+        return predictions_df
+
+
+
+
 
 
     # Dummy transformation functions (replace with your actual logic later)
@@ -399,13 +437,14 @@ class EagleBlendPredictor:
 
         # Identify columns to concatenate (exclude targets and fraction/property 7 columns)
         exclude_cols = target_cols + fraction_cols + property_tn
-        other_features = df[[col for col in df.columns if col not in exclude_cols]]
+        # other_features = df[[col for col in df.columns if col not in exclude_cols]]
+        other_features = [f"Component{i}_Property{j}" for j in range(1,11) for i in range(1,6) if j!= 7]
 
         # Reset indices and concatenate
         mixture_features = mixture_features.reset_index(drop=True)
-        other_features = other_features.reset_index(drop=True)
+        # other_features = other_features.reset_index(drop=True)
 
-        return pd.concat([mixture_features, other_features], axis=1)
+        return pd.concat([mixture_features, df[other_features].copy()], axis=1)
 
 
 
@@ -454,7 +493,7 @@ class EagleBlendPredictor:
 
 
 
-    def generate_mixture_features(data):
+    def generate_mixture_features(self,data):
         """
         Generate symmetric and weighted nonlinear interactions between fuel weights and properties.
         The input 'data' should contain weights in the first 5 columns/elements and properties in the next 5.

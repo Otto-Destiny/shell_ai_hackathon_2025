@@ -54,7 +54,7 @@ class EagleBlendPredictor:
               - callables returning models, or
               - custom loading logic (you will supply these)
         """
-        self.home = './Models'
+        self.home = model_sources # './Models'
         self.saved_files_map = {
                       1: {
                           "model": 'linear_model_poly_target_1.joblib',
@@ -121,7 +121,7 @@ class EagleBlendPredictor:
         self.model_10 = joblib.load(os.path.join(self.home, self.saved_files_map[10]["model"]))
         self.poly_10 = joblib.load(os.path.join(self.home, self.saved_files_map[10]["transform"]))
 
-        self.model_3489 = TabPFNEnsemblePredictor(model_dir="Models")
+        self.model_3489 = TabPFNEnsemblePredictor(model_dir= model_sources) #"Models")
         pass
 
 

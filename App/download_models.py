@@ -22,7 +22,7 @@ snapshot_download(
     repo_id="wayne-chi/Eagle_Team",
     revision="main",  # Optional, default is "main"
     local_dir=target_dir,
-    local_dir_use_symlinks=False
 )
 
 print("\n✅ All models downloaded successfully to:", target_dir)
+

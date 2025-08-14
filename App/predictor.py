@@ -54,7 +54,7 @@ class EagleBlendPredictor:
               - callables returning models, or
               - custom loading logic (you will supply these)
         """
-        self.home = model_sources # './Models'
+        self.home = model_sources
         self.saved_files_map = {
                       1: {
                           "model": 'linear_model_poly_target_1.joblib',
@@ -121,7 +121,7 @@ class EagleBlendPredictor:
         self.model_10 = joblib.load(os.path.join(self.home, self.saved_files_map[10]["model"]))
         self.poly_10 = joblib.load(os.path.join(self.home, self.saved_files_map[10]["transform"]))
 
-        self.model_3489 = TabPFNEnsemblePredictor(model_dir= model_sources) #"Models")
+        self.model_3489 = TabPFNEnsemblePredictor(model_dir=self.home)
         pass
 
 
@@ -249,7 +249,8 @@ class EagleBlendPredictor:
 
 
         # Concatenate the list of single-column DataFrames into a single DataFrame
-        predictions_df = pd.concat(predictions_list, axis=1)
+        predictions_df = pd.concat([df.reset_index(drop=True) for df in predictions_list], axis=1)
+
 
         # Ensure columns are in the desired order
         ordered_cols = [f'BlendProperty{i}' for i in range(1, 11)]
@@ -288,6 +289,7 @@ class EagleBlendPredictor:
             # Ensure columns exist to avoid KeyError
             try:
                 features = data[required_cols]
+                print(features.columns)
             except KeyError as e:
                 missing_col = str(e).split("'")[1]
                 raise ValueError(f"Input DataFrame is missing required column: {missing_col}") from e
@@ -411,6 +413,31 @@ class EagleBlendPredictor:
         return features
 
 
+
+
+    # def _transform7(self, row): return self._to_feature_array(row)
+    # def _transform7(self, df: pd.DataFrame) -> pd.DataFrame:
+    #     tn = 7
+    #     fn = tn
+
+    #     property_tn = [f'Component{i+1}_Property{fn}' for i in range(5)]
+    #     fraction_cols = [f'Component{i+1}_fraction' for i in range(5)]
+    #     target_cols = [f"BlendProperty{i}" for i in range(1, 11)]
+
+    #     # Generate mixture features using the class method
+    #     df_prop7 = df[fraction_cols + property_tn]
+    #     mixture_features = self.generate_mixture_features(df_prop7)
+
+    #     # Identify columns to concatenate (exclude targets and fraction/property 7 columns)
+    #     exclude_cols = target_cols + fraction_cols + property_tn
+    #     # other_features = df[[col for col in df.columns if col not in exclude_cols]]
+    #     other_features = [f"Component{i}_Property{j}" for j in range(1,11) for i in range(1,6) if j!= 7]
+
+    #     # Reset indices and concatenate
+    #     mixture_features = mixture_features.reset_index(drop=True)
+    #     # other_features = other_features.reset_index(drop=True)
+
+    #     return pd.concat([mixture_features, df[other_features].copy()], axis=1)
 
     def _transform7(self, df: pd.DataFrame) -> pd.DataFrame:
         """

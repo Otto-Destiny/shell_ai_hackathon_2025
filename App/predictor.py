@@ -260,11 +260,6 @@ class EagleBlendPredictor:
 
         return predictions_df
 
-
-
-
-
-
     # Dummy transformation functions (replace with your actual logic later)
     def _transform1(self, data):
         """

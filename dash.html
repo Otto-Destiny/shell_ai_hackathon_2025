@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Dashboard Visualizations</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .chart-container {
+            height: 400px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .mini-chart-container {
+            height: 200px;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .blend-card {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .blend-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .component-pill {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .property-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #FF6B35;
+        }
+
+        .property-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #FF6B35;
+            margin-bottom: 5px;
+        }
+
+        .property-name {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .search-filter {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #FF6B35;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .relationship-matrix {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .matrix-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .timeline-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-time {
+            width: 80px;
+            font-size: 0.8rem;
+            color: #666;
+            margin-right: 15px;
+        }
+
+        .timeline-content {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover, .page-btn.active {
+            background: #FF6B35;
+            color: white;
+            border-color: #FF6B35;
+        }
+    </style>
+</head>
+<body>
+    <!-- Database Statistics -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">127</div>
+            <div class="stat-label">Total Blends</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">15</div>
+            <div class="stat-label">Active Components</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">1,247</div>
+            <div class="stat-label">Blend Records</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">98.5%</div>
+            <div class="stat-label">Success Rate</div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Left Column: Main Charts -->
+        <div>
+            <!-- Blend Composition Sunburst -->
+            <div class="card">
+                <h3 class="section-title">🔬 Active Blend Compositions</h3>
+                <div class="search-filter">
+                    <input type="text" class="search-input" placeholder="Search blends..." onkeyup="filterBlends(this.value)">
+                    <select class="filter-select" onchange="filterByProperty(this.value)">
+                        <option value="">All Properties</option>
+                        <option value="viscosity">High Viscosity</option>
+                        <option value="density">Low Density</option>
+                        <option value="octane">High Octane</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="sunburstChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Component Properties Relationship -->
+            <div class="card">
+                <h3 class="section-title">📊 Component-Property Relationships</h3>
+                <div class="chart-container">
+                    <canvas id="bubbleChart"></canvas>
+                </div>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 10px;">
+                    Bubble size = Component concentration, X-axis = Property 1, Y-axis = Property 2, Color = Component type
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Column: Data Tables & Lists -->
+        <div>
+            <!-- Recent Blends -->
+            <div class="card">
+                <h3 class="section-title">📋 Recent Blends</h3>
+                <div id="recent-blends">
+                    <!-- Dynamic blend cards will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Component Inventory -->
+            <div class="card">
+                <h3 class="section-title">🏭 Component Status</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="component-table">
+                        <!-- Dynamic rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Property Distribution -->
+            <div class="card">
+                <h3 class="section-title">📈 Property Ranges</h3>
+                <div class="mini-chart-container">
+                    <canvas id="propertyDistribution"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blend Details Modal/Section -->
+    <div class="card">
+        <h3 class="section-title">🧪 Detailed Blend Analysis</h3>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+            <!-- Property Correlation Matrix -->
+            <div>
+                <h4>Property Correlation Matrix</h4>
+                <div class="relationship-matrix" id="correlation-matrix">
+                    <!-- Dynamic correlation cells -->
+                </div>
+            </div>
+
+            <!-- Selected Blend Details -->
+            <div>
+                <h4>Blend: <span id="selected-blend-name">BLEND_001</span></h4>
+                <div class="property-grid" id="selected-blend-properties">
+                    <!-- Dynamic property items -->
+                </div>
+                <div id="selected-blend-components">
+                    <!-- Component breakdown -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline/History -->
+    <div class="card">
+        <h3 class="section-title">📅 Blend Creation Timeline</h3>
+        <div class="timeline-container" id="blend-timeline">
+            <!-- Dynamic timeline items -->
+        </div>
+    </div>
+
+    <!-- Pagination for large datasets -->
+    <div class="pagination" id="pagination">
+        <button class="page-btn" onclick="changePage(-1)">← Previous</button>
+        <button class="page-btn active" onclick="selectPage(1)">1</button>
+        <button class="page-btn" onclick="selectPage(2)">2</button>
+        <button class="page-btn" onclick="selectPage(3)">3</button>
+        <button class="page-btn" onclick="changePage(1)">Next →</button>
+    </div>
+
+    <script>
+        // Simulated database data
+        const blendDatabase = {
+            blends: [
+                { id: 'BLEND_001', name: 'Premium Gasoline', created: '2024-01-15', components: { A: 0.35, B: 0.25, C: 0.20, D: 0.15, E: 0.05 }, properties: { octane: 93, viscosity: 0.8, density: 0.75, stability: 0.92 }},
+                { id: 'BLEND_002', name: 'Diesel Mix', created: '2024-01-14', components: { A: 0.15, B: 0.40, C: 0.25, D: 0.12, E: 0.08 }, properties: { octane: 88, viscosity: 1.2, density: 0.85, stability: 0.89 }},
+                { id: 'BLEND_003', name: 'Aviation Fuel', created: '2024-01-14', components: { A: 0.45, B: 0.20, C: 0.15, D: 0.15, E: 0.05 }, properties: { octane: 96, viscosity: 0.6, density: 0.78, stability: 0.95 }},
+                { id: 'BLEND_004', name: 'Marine Fuel', created: '2024-01-13', components: { A: 0.25, B: 0.35, C: 0.20, D: 0.15, E: 0.05 }, properties: { octane: 85, viscosity: 1.5, density: 0.88, stability: 0.87 }},
+                { id: 'BLEND_005', name: 'Racing Fuel', created: '2024-01-13', components: { A: 0.50, B: 0.15, C: 0.15, D: 0.15, E: 0.05 }, properties: { octane: 98, viscosity: 0.7, density: 0.72, stability: 0.94 }}
+            ],
+            components: [
+                { id: 'A', name: 'Component Alpha', stock: 850, status: 'Good', cost: 2.4 },
+                { id: 'B', name: 'Component Beta', stock: 420, status: 'Low', cost: 3.1 },
+                { id: 'C', name: 'Component Gamma', stock: 680, status: 'Good', cost: 1.8 },
+                { id: 'D', name: 'Component Delta', stock: 920, status: 'High', cost: 2.2 },
+                { id: 'E', name: 'Component Epsilon', stock: 340, status: 'Low', cost: 4.2 }
+            ]
+        };
+
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        // Initialize dashboard with database data
+        function initializeDashboard() {
+            renderRecentBlends();
+            renderComponentTable();
+            initializeSunburstChart();
+            initializeBubbleChart();
+            initializePropertyDistribution();
+            renderCorrelationMatrix();
+            renderSelectedBlendDetails('BLEND_001');
+            renderBlendTimeline();
+        }
+
+        // Render recent blends
+        function renderRecentBlends() {
+            const container = document.getElementById('recent-blends');
+            const recentBlends = blendDatabase.blends.slice(0, 5);
+            
+            container.innerHTML = recentBlends.map(blend => `
+                <div class="blend-card" onclick="selectBlend('${blend.id}')">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong>${blend.name}</strong>
+                        <small>${blend.created}</small>
+                    </div>
+                    <div>
+                        ${Object.entries(blend.components).map(([comp, val]) => 
+                            `<span class="component-pill">${comp}: ${(val*100).toFixed(1)}%</span>`
+                        ).join('')}
+                    </div>
+                    <div style="margin-top: 8px; font-size: 0.8rem;">
+                        Octane: ${blend.properties.octane} | Stability: ${(blend.properties.stability*100).toFixed(1)}%
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render component table
+        function renderComponentTable() {
+            const tbody = document.getElementById('component-table');
+            tbody.innerHTML = blendDatabase.components.map(comp => `
+                <tr>
+                    <td><strong>${comp.name}</strong></td>
+                    <td>${comp.stock} units</td>
+                    <td>
+                        <span style="color: ${comp.status === 'Good' ? '#28a745' : comp.status === 'Low' ? '#dc3545' : '#ffc107'};">
+                            ${comp.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Sunburst chart for blend compositions
+        function initializeSunburstChart() {
+            const ctx = document.getElementById('sunburstChart');
+            
+            // Transform blend data for polar area chart (approximating sunburst)
+            const blendData = blendDatabase.blends.slice(0, 5);
+            const componentTotals = {};
+            
+            blendData.forEach(blend => {
+                Object.entries(blend.components).forEach(([comp, val]) => {
+                    componentTotals[comp] = (componentTotals[comp] || 0) + val;
+                });
+            });
+
+            new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: Object.keys(componentTotals).map(comp => `Component ${comp}`),
+                    datasets: [{
+                        data: Object.values(componentTotals),
+                        backgroundColor: ['#FF6B35', '#F7931E', '#667eea', '#764ba2', '#f093fb']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${percentage}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Bubble chart for component-property relationships
+        function initializeBubbleChart() {
+            const ctx = document.getElementById('bubbleChart');
+            
+            const bubbleData = [];
+            const colors = ['#FF6B35', '#F7931E', '#667eea', '#764ba2', '#f093fb'];
+            
+            blendDatabase.blends.forEach(blend => {
+                Object.entries(blend.components).forEach(([comp, concentration], index) => {
+                    bubbleData.push({
+                        x: blend.properties.octane,
+                        y: blend.properties.viscosity,
+                        r: concentration * 20, // Scale bubble size
+                        component: comp,
+                        blend: blend.name,
+                        backgroundColor: colors[index % colors.length]
+                    });
+                });
+            });
+
+            new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        data: bubbleData,
+                        backgroundColor: bubbleData.map(point => point.backgroundColor)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw;
+                                    return [`${point.blend}`, `Component ${point.component}`, `Concentration: ${(point.r/20*100).toFixed(1)}%`];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Octane Rating' }},
+                        y: { title: { display: true, text: 'Viscosity' }}
+                    }
+                }
+            });
+        }
+
+        // Property distribution chart
+        function initializePropertyDistribution() {
+            const ctx = document.getElementById('propertyDistribution');
+            
+            const properties = ['octane', 'viscosity', 'density', 'stability'];
+            const datasets = properties.map((prop, index) => ({
+                label: prop.charAt(0).toUpperCase() + prop.slice(1),
+                data: blendDatabase.blends.map(blend => blend.properties[prop]),
+                backgroundColor: ['#FF6B35', '#F7931E', '#667eea', '#764ba2'][index],
+                alpha: 0.7
+            }));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: blendDatabase.blends.map(blend => blend.id),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' }},
+                    scales: {
+                        y: { beginAtZero: true },
+                        x: { ticks: { maxRotation: 45 }}
+                    }
+                }
+            });
+        }
+
+        // Render correlation matrix
+        function renderCorrelationMatrix() {
+            const matrix = document.getElementById('correlation-matrix');
+            const properties = ['Octane', 'Viscosity', 'Density', 'Stability'];
+            
+            // Simulate correlation data
+            const correlations = [
+                [1.00, 0.23, -0.15, 0.78],
+                [0.23, 1.00, 0.65, -0.12],
+                [-0.15, 0.65, 1.00, -0.34],
+                [0.78, -0.12, -0.34, 1.00]
+            ];
+
+            let html = '';
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const value = correlations[i][j];
+                    const intensity = Math.abs(value);
+                    const color = value > 0 ? `rgba(40, 167, 69, ${intensity})` : `rgba(220, 53, 69, ${intensity})`;
+                    html += `<div class="matrix-cell" style="background: ${color};">${value.toFixed(2)}</div>`;
+                }
+            }
+            matrix.innerHTML = html;
+        }
+
+        // Render selected blend details
+        function renderSelectedBlendDetails(blendId) {
+            const blend = blendDatabase.blends.find(b => b.id === blendId);
+            if (!blend) return;
+
+            document.getElementById('selected-blend-name').textContent = blend.name;
+            
+            const propertiesGrid = document.getElementById('selected-blend-properties');
+            propertiesGrid.innerHTML = Object.entries(blend.properties).map(([prop, value]) => `
+                <div class="property-item">
+                    <div class="property-value">${typeof value === 'number' ? value.toFixed(2) : value}</div>
+                    <div class="property-name">${prop.charAt(0).toUpperCase() + prop.slice(1)}</div>
+                </div>
+            `).join('');
+
+            const componentsDiv = document.getElementById('selected-blend-components');
+            componentsDiv.innerHTML = `
+                <h4 style="margin: 15px 0 10px 0;">Component Breakdown:</h4>
+                ${Object.entries(blend.components).map(([comp, val]) => 
+                    `<div style="display: flex; justify-content: space-between; margin: 5px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                        <span>Component ${comp}</span>
+                        <strong>${(val*100).toFixed(1)}%</strong>
+                    </div>`
+                ).join('')}
+            `;
+        }
+
+        // Render blend timeline
+        function renderBlendTimeline() {
+            const timeline = document.getElementById('blend-timeline');
+            const sortedBlends = [...blendDatabase.blends].sort((a, b) => new Date(b.created) - new Date(a.created));
+            
+            timeline.innerHTML = sortedBlends.map(blend => `
+                <div class="timeline-item">
+                    <div class="timeline-time">${blend.created}</div>
+                    <div class="timeline-content">
+                        <strong>${blend.name}</strong> created with ${Object.keys(blend.components).length} components
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">
+                            Octane: ${blend.properties.octane}, Stability: ${(blend.properties.stability*100).toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Event handlers
+        function selectBlend(blendId) {
+            renderSelectedBlendDetails(blendId);
+            // You could also highlight the selected blend, update other charts, etc.
+        }
+
+        function filterBlends(searchTerm) {
+            // Implement search functionality
+            console.log('Searching for:', searchTerm);
+        }
+
+        function filterByProperty(property) {
+            // Implement property filtering
+            console.log('Filtering by:', property);
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            if (currentPage < 1) currentPage = 1;
+            // Implement pagination logic
+        }
+
+        function selectPage(page) {
+            currentPage = page;
+            // Update active page styling and reload data
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    </script>
+</body>
+</html>

@@ -1,16 +1,13 @@
----
-title: Eagle Blend Optimizer
-emoji: 🦅
-colorFrom: "#654321"
-colorTo: "#CFB53B"
-sdk: streamlit
-sdk_version: "1.35.0"
-python_version: "3.10"
-app_file: app.py
-args: ["--server.fileWatcherType", "none"]
+# 🦅 Eagle Blend Optimizer
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.35.0-FF4B4B.svg)](https://streamlit.io)
+[![Made with ❤️ by eagle-team](https://img.shields.io/badge/Made%20with-❤️-red)](https://github.com/eagle-team)
+[![Deploy on Hugging Face](https://img.shields.io/badge/🤗-Hugging%20Face%20Spaces-blue)](https://huggingface.co/spaces/eagle-team/eagle-blend-optimizer)
+
 ---
 
-# 🦅 Eagle Blend Optimizer
 
 **An AI-Powered Web Application for Fuel Blend Property Prediction and Optimization**
 *A project by eagle-team for the Shell.ai 2025 Hackathon*

@@ -66,7 +66,7 @@ A transparent look "under the hood" of the AI model.
 -   **Data Manipulation:** Pandas & NumPy
 -   **Visualization:** Plotly Express & Plotly Graph Objects
 -   **Database:** SQLite (for local data persistence)
--   **Machine Learning Model:** The backend prediction is powered by a pre-trained model (e.g., TabPFN, XGBoost) loaded via the `predictor.py` script.
+-   **Machine Learning Model:** The backend prediction is powered by a pre-trained model (TabPFN, Linear Regression) loaded via the `predictor.py` script.
 -   **Deployment:** Hosted on Hugging Face Spaces.
 
 ---

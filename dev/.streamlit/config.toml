@@ -1,0 +1,25 @@
+[theme]
+base = "light"
+primaryColor = "#e0e0e0"  # Dark blue for primary elements
+backgroundColor = "#f8f5f0" #"#f8f9fa"  # Very light gray for main background
+secondaryBackgroundColor = "#ffffff"  # White for cards/sidebar
+textColor = "#212529"  # Dark gray for text
+font = "sans serif"
+
+[layout]
+# Makes layout stretch across the screen — very helpful for large tab spacing and responsiveness
+wide = true
+
+[server]
+# Ensures Streamlit runs in headless mode (default in production)
+headless = true
+
+# Automatically reload when file changes
+runOnSave = true
+
+[client]
+# Minimizes the top toolbar (menu and help) for cleaner UI
+toolbarMode = "minimal"
+
+# Allows embedded apps to resize based on content (helps mobile-friendliness)
+showErrorDetails = true

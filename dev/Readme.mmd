@@ -1,0 +1,54 @@
+flowchart TD
+    A[🎯 Start: Define Optimization Goals] --> B{Input Target Properties<br/>Properties 1-10}
+    B --> C[🔒 Set Fixed Constraints<br/>Properties 1,2,5,6,7,10 only]
+    C --> D[📋 Component Selection<br/>Load from Registry or Manual Entry]
+    
+    D --> E[⚙️ Configure Parameters<br/>Population Size & Generations]
+    E --> F[🔄 Include Cost Optimization?]
+    
+    F -->|Yes| G[💰 Multi-Objective Mode<br/>Error + Cost]
+    F -->|No| H[🎯 Single-Objective Mode<br/>Error Only]
+    
+    G --> I[🚀 Initialize NSGA-II Algorithm]
+    H --> I
+    
+    I --> J[👥 Generate Initial Population<br/>Random Component Fractions]
+    J --> K[🔧 Apply Normalization Repair<br/>Ensure Fractions Sum to 1]
+    
+    K --> L[🧮 Evaluate Solutions]
+    L --> M[🔮 ML Model Prediction<br/>Predict Blend Properties]
+    M --> N[📊 Calculate Objectives<br/>Property Error & Cost]
+    
+    N --> O[⚖️ Constraint Validation<br/>Check Fixed Targets]
+    O --> P{Generation<br/>Limit Reached?}
+    
+    P -->|No| Q[🧬 NSGA-II Operations<br/>Selection, Crossover, Mutation]
+    Q --> K
+    
+    P -->|Yes| R[🏆 Extract Pareto Front<br/>Non-dominated Solutions]
+    R --> S[📈 Calculate Quality Scores<br/>Logarithmic Error Transformation]
+    
+    S --> T[🎨 Generate Visualizations<br/>Pareto Plot & Solution Cards]
+    T --> U[📊 Results Dashboard<br/>Sort & Select Solutions]
+    
+    U --> V{User Action}
+    V -->|Save Solution| W[💾 Save to Database<br/>Blend Registry Integration]
+    V -->|Analyze Different Solution| X[🔄 Update Display<br/>Refresh Metrics & Charts]
+    V -->|New Optimization| A
+    
+    W --> Y[✅ Complete<br/>Solution Saved Successfully]
+    X --> U
+    
+    style A fill:#e1f5fe,stroke:#0277bd,stroke-width:3px
+    style I fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style R fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style Y fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    
+    classDef processNode fill:#fff9c4,stroke:#f9a825,stroke-width:2px
+    classDef decisionNode fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef dataNode fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef resultNode fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
+    
+    class B,D,E,J,L,M,N,S,T decisionNode
+    class C,K,O,Q,U,X processNode
+    class W,Y resultNode

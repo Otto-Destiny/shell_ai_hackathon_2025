@@ -1,6 +1,23 @@
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+"/>
+  <img src="https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit"/>
+  <img src="https://img.shields.io/badge/XGBoost-Production%20Inference-0C2340?style=for-the-badge" alt="XGBoost Production Inference"/>
+  <img src="https://img.shields.io/badge/scikit--learn-ML%20Pipeline-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" alt="scikit-learn"/>
+  <img src="https://img.shields.io/badge/SQLite-Registry%20Layer-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/NSGA--II-Multi--Objective%20Optimization-6A1B9A?style=for-the-badge" alt="NSGA-II"/>
+  <img src="https://img.shields.io/badge/pymoo-Evolutionary%20Search-7B1FA2?style=for-the-badge" alt="pymoo"/>
+  <img src="https://img.shields.io/badge/PyTorch-TabPFN%20Runtime-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch"/>
+  <img src="https://img.shields.io/badge/TabPFN-Hybrid%20Inference%20Stack-1E88E5?style=for-the-badge" alt="TabPFN"/>
+  <img src="https://img.shields.io/badge/TVAE-Synthetic%20Data%20Augmentation-00897B?style=for-the-badge" alt="TVAE"/>
+  <img src="https://img.shields.io/badge/Pandas-Feature%20Engineering-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="Pandas"/>
+</p>
+
 # Eagle Blend Optimizer
 
-**Eagle Blend Optimizer** is Eagle Team's fuel-blending intelligence platform for the **Shell AI Global Hackathon 2025**. The project won the **Phase 1 leaderboard round** against **7K+ participants** and went on to finish among the **Top 5 presenters in Phase 2**.
+**Eagle Blend Optimizer** is Eagle Team's fuel-blending intelligence platform for the **Shell AI Global Hackathon 2025**. The project won the **Phase 1 leaderboard round** against **7K+ participants** and went on to finish among the **Top 5 presenters in Phase 2 (General Category)**.
 
 The repository formulates fuel-blend design as a constrained surrogate-modeling and multi-objective optimization problem defined over a **55-dimensional blend representation** comprising **5 component fractions** and **50 component-property descriptors**, with regression targets spanning **10 blend properties**. The production inference path uses a **scaler -> PCA -> XGBoost** stack for multivariate property prediction, while the optimization layer solves a **Pareto-constrained search problem** that minimizes squared property deviation and, when enabled, formulation cost under simplex constraints and frozen-property tolerances via **NSGA-II** with a custom **normalization repair operator**.
 

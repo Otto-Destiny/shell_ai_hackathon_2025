@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eagle-blend"
+version = "0.1.0"
+description = "Product-first repository layout for the Eagle Blend Optimizer."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "joblib",
+  "matplotlib",
+  "numpy",
+  "pandas",
+  "plotly",
+  "pymoo",
+  "scikit-learn",
+  "streamlit",
+  "xgboost",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

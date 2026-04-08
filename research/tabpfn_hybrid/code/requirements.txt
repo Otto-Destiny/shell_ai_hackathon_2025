@@ -1,0 +1,14 @@
+tabpfn-extensions @ git+https://github.com/PriorLabs/tabpfn-extensions.git@16e0e4f4305a3546eab5be6ebf163ff41bd3843d
+scikit-learn==1.5.1
+huggingface_hub
+autogluon
+tabpfn==2.0.9
+streamlit==1.43.0
+numpy==1.26.4
+pandas==2.2.3
+matplotlib
+matplotlib-inline==0.1.7
+seaborn==0.13.2
+setuptools
+torch
+
